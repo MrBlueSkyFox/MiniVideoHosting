@@ -1,0 +1,6 @@
+fast-api
+python-multipart
+pip install pydantic[email]
+pip install pydantic-settings
+aiosqlite
+alembic
