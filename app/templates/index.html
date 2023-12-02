@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Update Video</title>
+</head>
+<body>
+<h1>Update Video</h1>
+
+<form id="videoForm">
+    <label for="videoURL">Video URL:</label>
+    <input type="text" id="videoURL" name="videoURL" required>
+    <br>
+
+    <button type="submit">Update Video</button>
+</form>
+
+<video id="videoPlayer"
+       class="video-js"
+       controls
+       preload="auto"
+       width="1000"
+       height="800"
+       data-setup="{}"
+>
+    <source src="http://localhost:8000/video/07c58812-aa1e-4ba0-9791-25ece847e7a6" type="video/mp4">
+    <source src="http://localhost:8000/video/07c58812-aa1e-4ba0-9791-25ece847e7a6" type="video/webm">
+</video>
+
+<script>
+    const form = document.getElementById('videoForm');
+    const videoPlayer = document.getElementById('videoPlayer');
+
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        const videoURL = document.getElementById('videoURL').value;
+        const path = "http://localhost:8000/video/stream/id=" + videoURL
+        // videoPlayer.src = path
+        videoPlayer.children[0].src = path
+        // fetch('/', {
+        //     method: 'POST',
+        //     headers: {
+        //         'Content-Type': 'application/json'
+        //     },
+        //     body: JSON.stringify({ videoURL })
+        // })
+        // .then(response => response.json())
+        // .then(data => {
+        //     if (data.success) {
+        //         videoPlayer.src = data.videoURL;
+        //     } else {
+        //         alert('Error updating video');
+        //     }
+        // });
+    });
+</script>
+</body>
+</html>
