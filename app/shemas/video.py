@@ -1,7 +1,5 @@
-from typing import Optional
 from uuid import UUID
 
-from fastapi import UploadFile
 from pydantic import BaseModel, ConfigDict
 
 
@@ -9,12 +7,11 @@ class VideoIn(BaseModel):
     title: str
     description: str
     filename: str
-    # file: Optional[str]
 
 
 class VideoUpdate(BaseModel):
-    name: str
-    description: str
+    title: str = None
+    description: str = None
 
 
 class VideoInDBBase(BaseModel):

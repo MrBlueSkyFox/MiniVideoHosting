@@ -1,7 +1,7 @@
 from pathlib import Path
 from uuid import UUID
 
-from fastapi import APIRouter, UploadFile, File, Depends, BackgroundTasks, Form, Header
+from fastapi import APIRouter, UploadFile, File, Depends, BackgroundTasks, Form, Header, HTTPException
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
@@ -11,7 +11,7 @@ from starlette.templating import Jinja2Templates
 from app import crud
 from db.engine import get_session
 from services.video import open_file, write_video, get_absolute_file_path
-from shemas.video import Video, VideoIn
+from shemas.video import Video, VideoIn, VideoUpdate
 
 CHUNK_SIZE = 1024 * 1024
 templates = Jinja2Templates(directory="templates")
@@ -19,14 +19,14 @@ templates = Jinja2Templates(directory="templates")
 video_router = APIRouter()
 
 
-@video_router.post("/", response_model=Video)
+@video_router.post("/", response_model=Video, status_code=201)
 async def create_video(
         back_tasks: BackgroundTasks,
         file: UploadFile = File(...),
         name: str = Form(...),
         description: str = Form(...),
         db: AsyncSession = Depends(get_session),
-):
+) -> Video:
     video_in = VideoIn(filename=file.filename, title=name, description=description)
     video = await crud.video.create_video(db, video_in)
     file_name = str(video.id) + video_in.filename
@@ -40,7 +40,11 @@ async def get_all_video():
 
 
 @video_router.get("/stream/{id}")
-async def get_streaming_video(id: UUID, request: Request, db: AsyncSession = Depends(get_session)) -> StreamingResponse:
+async def get_streaming_video(
+        id: UUID,
+        request: Request,
+        db: AsyncSession = Depends(get_session)
+) -> StreamingResponse:
     video = await crud.video.get_video(db, id)
 
     video_file_name = str(video.id) + video.filename
@@ -61,7 +65,11 @@ async def get_streaming_video(id: UUID, request: Request, db: AsyncSession = Dep
 
 
 @video_router.get("/stream2/{id}")
-async def get_video(id: UUID, range: str = Header(None), db: AsyncSession = Depends(get_session)):
+async def get_video(
+        id: UUID,
+        range: str = Header(None),
+        db: AsyncSession = Depends(get_session)
+) -> Response:
     video = await crud.video.get_video(db, id)
     video_file_name = str(video.id) + video.filename
     video_abs_file_name = get_absolute_file_path(video_file_name)
@@ -80,9 +88,17 @@ async def get_video(id: UUID, range: str = Header(None), db: AsyncSession = Depe
         return Response(data, status_code=206, headers=headers, media_type="video/mp4")
 
 
-@video_router.put("/{id}")
-async def update_video():
-    pass
+@video_router.put("/{id}", response_model=Video)
+async def update_video(
+        id: UUID,
+        video_update: VideoUpdate,
+        db: AsyncSession = Depends(get_session)
+) -> Video:
+    video = await crud.video.get_video(db, id)
+    if not video:
+        raise HTTPException(status_code=404, detail="Video not found")
+    video = await crud.video.update_video(db, video, video_update)
+    return video
 
 
 @video_router.delete("/{id}")
