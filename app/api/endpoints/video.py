@@ -28,7 +28,7 @@ async def create_video(
         db: AsyncSession = Depends(get_session),
 ) -> Video:
     video_in = VideoIn(filename=file.filename, title=name, description=description)
-    video = await crud.video.create_video(db, video_in)
+    video = await crud.video.create(db, video_in)
     file_name = str(video.id) + video_in.filename
     back_tasks.add_task(write_video, file, file_name)
     return video
@@ -45,7 +45,7 @@ async def get_streaming_video(
         request: Request,
         db: AsyncSession = Depends(get_session)
 ) -> StreamingResponse:
-    video = await crud.video.get_video(db, id)
+    video = await crud.video.get(db, id)
 
     video_file_name = str(video.id) + video.filename
     video_file_name = get_absolute_file_path(video_file_name)
@@ -70,7 +70,7 @@ async def get_video(
         range: str = Header(None),
         db: AsyncSession = Depends(get_session)
 ) -> Response:
-    video = await crud.video.get_video(db, id)
+    video = await crud.video.get(db, id)
     video_file_name = str(video.id) + video.filename
     video_abs_file_name = get_absolute_file_path(video_file_name)
     video_abs_file_name = Path(video_abs_file_name)
@@ -94,13 +94,21 @@ async def update_video(
         video_update: VideoUpdate,
         db: AsyncSession = Depends(get_session)
 ) -> Video:
-    video = await crud.video.get_video(db, id)
+    video = await crud.video.get(db, id)
     if not video:
         raise HTTPException(status_code=404, detail="Video not found")
-    video = await crud.video.update_video(db, video, video_update)
+    video = await crud.video.update(db, video, video_update)
     return video
 
 
-@video_router.delete("/{id}")
-async def delete_video():
-    pass
+@video_router.delete("/{id}", response_model=Video)
+async def delete_video(
+        id: UUID,
+        db: AsyncSession = Depends(get_session)
+) -> Video:
+    video = await crud.video.get(db, id)
+    if not video:
+        raise HTTPException(status_code=404, detail="Video not found")
+
+    video = await crud.video.remove(db, video)
+    return video

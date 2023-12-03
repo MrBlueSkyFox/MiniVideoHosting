@@ -10,7 +10,7 @@ from app.shemas.video import VideoIn, VideoUpdate
 
 
 class CRUDVideo(CRUDBase[Video, VideoIn, VideoUpdate]):
-    async def create_video(
+    async def create(
             self,
             db_session: AsyncSession,
             video_in: VideoIn
@@ -21,7 +21,7 @@ class CRUDVideo(CRUDBase[Video, VideoIn, VideoUpdate]):
         await db_session.refresh(db_obj)
         return db_obj
 
-    async def get_video(
+    async def get(
             self,
             db_session: AsyncSession,
             id: UUID
@@ -32,7 +32,7 @@ class CRUDVideo(CRUDBase[Video, VideoIn, VideoUpdate]):
         video_obj = video_obj.scalars().first()
         return video_obj
 
-    async def update_video(
+    async def update(
             self,
             db_session: AsyncSession,
             video_obj: Video, video_update: VideoUpdate
@@ -47,7 +47,14 @@ class CRUDVideo(CRUDBase[Video, VideoIn, VideoUpdate]):
         await db_session.refresh(video_obj)
         return video_obj
 
-        pass
+    async def remove(
+            self,
+            db_session: AsyncSession,
+            video_obj: Video
+    ) -> Video:
+        await db_session.delete(video_obj)
+        await db_session.commit()
+        return video_obj
 
 
 video = CRUDVideo(Video)
