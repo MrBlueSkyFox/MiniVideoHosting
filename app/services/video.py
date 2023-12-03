@@ -4,8 +4,7 @@ from pathlib import Path
 from typing import IO, Generator
 
 from starlette.requests import Request
-
-SAVE_DIR = r"C:\Users\Tigran\PycharmProjects\MiniVideoHosting\data"
+from app.core.config import settings
 
 
 async def get_video_by_user():
@@ -13,7 +12,7 @@ async def get_video_by_user():
 
 
 def get_absolute_file_path(relative_path: str) -> str:
-    return os.path.join(SAVE_DIR, relative_path)
+    return os.path.join(settings.SAVE_DIR, relative_path)
 
 
 async def open_file(request: Request, file_path: str) -> tuple:
@@ -64,6 +63,6 @@ def ranged(
 
 
 def write_video(file, file_name: str):
-    file_name = os.path.join(SAVE_DIR, file_name)
+    file_name = get_absolute_file_path(file_name)
     with open(file_name, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)

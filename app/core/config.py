@@ -35,5 +35,7 @@ class Settings(BaseSettings):
             dbname=f"/{values.data.get('POSTGRES_DB') or ''}"
         ))
 
+    SAVE_DIR: str = r"C:\Users\Tigran\PycharmProjects\MiniVideoHosting\data"
+
 
 settings = Settings()
