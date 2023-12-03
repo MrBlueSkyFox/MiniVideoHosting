@@ -32,6 +32,15 @@ class CRUDVideo(CRUDBase[Video, VideoIn, VideoUpdate]):
         video_obj = video_obj.scalars().first()
         return video_obj
 
+    async def get_all(
+            self,
+            db_session: AsyncSession
+    ) -> list[Video]:
+        stmt = select(Video)
+        video_objects = await db_session.execute(stmt)
+        video_objects = video_objects.scalars()
+        return video_objects
+
     async def update(
             self,
             db_session: AsyncSession,

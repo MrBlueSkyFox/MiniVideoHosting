@@ -34,9 +34,38 @@ async def create_video(
     return video
 
 
-@video_router.get("/video")
-async def get_all_video():
-    pass
+@video_router.get("/all", response_model=list[Video])
+async def get_all_video(
+        db: AsyncSession = Depends(get_session),
+) -> list[Video]:
+    videos = await crud.video.get_all(db)
+    return videos
+
+
+@video_router.put("/{id}", response_model=Video)
+async def update_video(
+        id: UUID,
+        video_update: VideoUpdate,
+        db: AsyncSession = Depends(get_session)
+) -> Video:
+    video = await crud.video.get(db, id)
+    if not video:
+        raise HTTPException(status_code=404, detail="Video not found")
+    video = await crud.video.update(db, video, video_update)
+    return video
+
+
+@video_router.delete("/{id}", response_model=Video)
+async def delete_video(
+        id: UUID,
+        db: AsyncSession = Depends(get_session)
+) -> Video:
+    video = await crud.video.get(db, id)
+    if not video:
+        raise HTTPException(status_code=404, detail="Video not found")
+
+    video = await crud.video.remove(db, video)
+    return video
 
 
 @video_router.get("/stream/{id}")
@@ -86,29 +115,3 @@ async def get_video(
             'Accept-Ranges': 'bytes'
         }
         return Response(data, status_code=206, headers=headers, media_type="video/mp4")
-
-
-@video_router.put("/{id}", response_model=Video)
-async def update_video(
-        id: UUID,
-        video_update: VideoUpdate,
-        db: AsyncSession = Depends(get_session)
-) -> Video:
-    video = await crud.video.get(db, id)
-    if not video:
-        raise HTTPException(status_code=404, detail="Video not found")
-    video = await crud.video.update(db, video, video_update)
-    return video
-
-
-@video_router.delete("/{id}", response_model=Video)
-async def delete_video(
-        id: UUID,
-        db: AsyncSession = Depends(get_session)
-) -> Video:
-    video = await crud.video.get(db, id)
-    if not video:
-        raise HTTPException(status_code=404, detail="Video not found")
-
-    video = await crud.video.remove(db, video)
-    return video
