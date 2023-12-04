@@ -36,6 +36,7 @@ class Settings(BaseSettings):
         ))
 
     SAVE_DIR: str = r"C:\Users\Tigran\PycharmProjects\MiniVideoHosting\data"
+    SECRET: str = "BigSecretWord"
 
 
 settings = Settings()

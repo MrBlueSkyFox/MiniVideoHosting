@@ -8,10 +8,12 @@ from starlette.requests import Request
 from starlette.responses import StreamingResponse, Response
 from starlette.templating import Jinja2Templates
 
+from api.deps import current_active_user
 from app import crud
 from db.engine import get_session
-from services.video import open_file, write_video, get_absolute_file_path
-from shemas.video import Video, VideoIn, VideoUpdate
+from app.models.user import User
+from app.services.video import open_file, write_video, get_absolute_file_path
+from app.shemas.video import Video, VideoIn, VideoUpdate
 
 CHUNK_SIZE = 1024 * 1024
 templates = Jinja2Templates(directory="templates")
@@ -25,9 +27,10 @@ async def create_video(
         file: UploadFile = File(...),
         name: str = Form(...),
         description: str = Form(...),
+        user: User = Depends(current_active_user),
         db: AsyncSession = Depends(get_session),
 ) -> Video:
-    video_in = VideoIn(filename=file.filename, title=name, description=description)
+    video_in = VideoIn(filename=file.filename, title=name, description=description, owner_id=user.id)
     video = await crud.video.create(db, video_in)
     file_name = str(video.id) + video_in.filename
     back_tasks.add_task(write_video, file, file_name)
