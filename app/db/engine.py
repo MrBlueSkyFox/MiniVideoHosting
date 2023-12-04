@@ -3,8 +3,6 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 
 from app.core.config import settings
 
-# from sqlmodel.ext.asyncio.session import AsyncSession
-
 connect_args = {"check_same_thread": False}
 engine = create_async_engine(
     str(settings.SQLALCHEMY_DATABASE_URI),
